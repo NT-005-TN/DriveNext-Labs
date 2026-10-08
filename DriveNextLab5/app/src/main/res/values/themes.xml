@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <style name="Theme.DriveNext" parent="Theme.Material3.Light.NoActionBar">
+        <item name="colorPrimary">@color/purple_primary</item>
+        <item name="colorOnPrimary">@color/surface</item>
+        <item name="android:fontFamily">sans</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:statusBarColor">@color/surface</item>
+        <item name="android:navigationBarColor">@color/surface</item>
+        <item name="android:windowActionModeOverlay">true</item>
+    </style>
+    <style name="MenuRow">
+        <item name="android:layout_width">match_parent</item><item name="android:layout_height">64dp</item><item name="android:gravity">center_vertical</item><item name="android:paddingHorizontal">16dp</item><item name="android:layout_marginTop">8dp</item><item name="android:background">@drawable/bg_secondary_button</item><item name="android:textColor">@color/text_primary</item><item name="android:textSize">17sp</item>
+    </style>
+
+    <style name="Theme.DriveNext.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/surface</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_app_logo</item>
+        <item name="postSplashScreenTheme">@style/Theme.DriveNext</item>
+    </style>
+</resources>

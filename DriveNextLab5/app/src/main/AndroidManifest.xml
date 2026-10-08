@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@drawable/ic_app_logo"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.DriveNext">
+
+        <activity android:name=".presentation.settings.ProfileActivity" />
+        <activity android:name=".presentation.landlord.CarAddedActivity" />
+        <activity android:name=".presentation.landlord.CarPhotosActivity" />
+        <activity android:name=".presentation.landlord.CarInfoActivity" />
+        <activity android:name=".presentation.landlord.CarAddressActivity" />
+        <activity android:name=".presentation.landlord.BecomeLandlordActivity" />
+        <activity android:name=".presentation.booking.BookingSuccessActivity" />
+        <activity android:name=".presentation.booking.BookingActivity" />
+        <activity android:name=".presentation.catalog.FavoritesActivity" />
+        <activity android:name=".presentation.catalog.CarDetailsActivity" />
+        <activity android:name=".presentation.settings.SettingsActivity" />
+        <activity android:name=".presentation.catalog.SearchResultsActivity" />
+        <activity android:name=".presentation.main.MainActivity" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity android:name=".presentation.registration.SuccessActivity" />
+        <activity android:name=".presentation.registration.RegisterStep3Activity" />
+        <activity android:name=".presentation.registration.RegisterStep2Activity" />
+        <activity android:name=".presentation.registration.RegisterStep1Activity" />
+        <activity android:name=".presentation.auth.LoginActivity" />
+        <activity android:name=".presentation.auth.AuthChoiceActivity" />
+        <activity android:name=".presentation.onboarding.OnboardingActivity" />
+        <activity android:name=".presentation.connection.NoConnectionActivity" />
+        <activity android:name=".presentation.splash.SplashActivity" android:theme="@style/Theme.DriveNext.Splash" />
+    </application>
+</manifest>

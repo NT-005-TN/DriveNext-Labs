@@ -1,0 +1,3 @@
+package ru.mtuci.drivenext.presentation.landlord
+import android.content.Intent; import android.os.Bundle; import androidx.appcompat.app.AppCompatActivity; import ru.mtuci.drivenext.databinding.ActivityCarAddressBinding; import ru.mtuci.drivenext.presentation.common.afterTextChanged
+class CarAddressActivity:AppCompatActivity(){override fun onCreate(s:Bundle?){super.onCreate(s);val b=ActivityCarAddressBinding.inflate(layoutInflater);setContentView(b.root);b.backButton.setOnClickListener{finish()};b.addressInput.afterTextChanged{b.nextButton.isEnabled=b.addressInput.text?.isNotBlank()==true};b.nextButton.setOnClickListener{startActivity(Intent(this,CarInfoActivity::class.java))}}}

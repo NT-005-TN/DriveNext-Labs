@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+ <item android:id="@+id/navHome" android:icon="@android:drawable/ic_menu_view" android:title="@string/home" />
+ <item android:id="@+id/navFavorites" android:icon="@android:drawable/btn_star_big_off" android:title="@string/favorites" />
+ <item android:id="@+id/navSettings" android:icon="@android:drawable/ic_menu_preferences" android:title="@string/settings" />
+</menu>

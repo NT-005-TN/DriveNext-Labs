@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_margin="8dp" app:cardCornerRadius="16dp" app:cardElevation="2dp">
+ <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="18dp">
+  <TextView android:id="@+id/name" android:layout_width="match_parent" android:layout_height="wrap_content" android:textColor="@color/text_primary" android:textSize="21sp" android:textStyle="bold" />
+  <TextView android:id="@+id/specs" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="6dp" android:textColor="@color/text_secondary" />
+  <TextView android:id="@+id/price" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="10dp" android:textColor="@color/purple_primary" android:textSize="18sp" android:textStyle="bold" />
+  <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="14dp" android:orientation="horizontal">
+   <Button android:id="@+id/detailsButton" android:layout_width="0dp" android:layout_height="50dp" android:layout_weight="1" android:background="@drawable/bg_secondary_button" android:text="@string/details" android:textAllCaps="false" android:textColor="@color/purple_primary" app:backgroundTint="@null" />
+   <Button android:id="@+id/bookButton" android:layout_width="0dp" android:layout_height="50dp" android:layout_marginStart="10dp" android:layout_weight="1" android:background="@drawable/bg_primary_button" android:text="@string/book" android:textAllCaps="false" android:textColor="@color/surface" app:backgroundTint="@null" />
+  </LinearLayout>
+ </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">DriveNext</string>
+    <string name="tagline">Поможем найти твою следующую поездку</string>
+    <string name="no_connection_title">Нет подключения\nк интернету</string>
+    <string name="no_connection_message">Проверьте подключение и повторите попытку</string>
+    <string name="retry">Повторить попытку</string>
+    <string name="skip">Пропустить</string>
+    <string name="next">Далее</string>
+    <string name="start">Поехали</string>
+    <string name="login_title">Вход в DriveNext</string>
+    <string name="login_placeholder">Экран входа будет реализован в следующей лабораторной работе</string>
+    <string name="main_title">Главный экран DriveNext</string>
+    <string name="slide_1_title">Аренда автомобилей</string>
+    <string name="slide_1_description">Открой для себя удобный и доступный способ передвижения</string>
+    <string name="slide_2_title">Безопасно и удобно</string>
+    <string name="slide_2_description">Арендуй автомобиль и наслаждайся его удобством</string>
+    <string name="slide_3_title">Лучшие предложения</string>
+    <string name="slide_3_description">Выбирай понравившееся среди сотен доступных автомобилей</string>
+    <string name="connection_icon_description">Нет подключения к интернету</string>
+    <string name="slide_image_description">Иллюстрация преимущества DriveNext</string>
+</resources>
