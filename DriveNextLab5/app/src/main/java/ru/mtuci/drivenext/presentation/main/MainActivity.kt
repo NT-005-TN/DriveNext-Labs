@@ -3,32 +3,65 @@ package ru.mtuci.drivenext.presentation.main
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
-import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
-import ru.mtuci.drivenext.data.cars.CarRepository
+import org.json.JSONObject
+import ru.mtuci.drivenext.R
+import ru.mtuci.drivenext.data.cars.Car
 import ru.mtuci.drivenext.databinding.ActivityMainBinding
-import ru.mtuci.drivenext.presentation.catalog.CarAdapter
-import ru.mtuci.drivenext.presentation.catalog.SearchResultsActivity
+import ru.mtuci.drivenext.presentation.common.WorkspaceActivity
+import ru.mtuci.drivenext.presentation.catalog.*
+import ru.mtuci.drivenext.presentation.booking.BookingActivity
 import ru.mtuci.drivenext.presentation.settings.SettingsActivity
 
-class MainActivity : AppCompatActivity() {
+open class MainActivity : WorkspaceActivity() {
+    protected lateinit var binding: ActivityMainBinding
+    private lateinit var adapter: CarAdapter
+    protected open val searchMode = false
+    protected open val favoritesMode = false
+    private var searchJob: kotlinx.coroutines.Job? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-        val repository = CarRepository()
-        val adapter = CarAdapter({ car -> startActivity(Intent(this, ru.mtuci.drivenext.presentation.catalog.CarDetailsActivity::class.java).putExtra("id",car.id).putExtra("brand",car.brand).putExtra("model",car.model).putExtra("price",car.pricePerDay).putExtra("specs",car.specs)) }, { car -> startActivity(Intent(this, ru.mtuci.drivenext.presentation.booking.BookingActivity::class.java).putExtra("name","${car.brand} ${car.model}")) })
+        binding = ActivityMainBinding.inflate(layoutInflater); setContentView(binding.root)
+        adapter = CarAdapter({ open(CarDetailsActivity::class.java,it) },{ open(BookingActivity::class.java,it) })
         binding.carList.layoutManager = LinearLayoutManager(this); binding.carList.adapter = adapter
-        binding.progress.visibility = View.VISIBLE
-        binding.carList.postDelayed({ adapter.submitList(repository.all()); binding.progress.visibility = View.GONE }, 450)
-        binding.searchView.setOnQueryTextListener(object : androidx.appcompat.widget.SearchView.OnQueryTextListener {
-            override fun onQueryTextSubmit(query: String): Boolean { startActivity(Intent(this@MainActivity, SearchResultsActivity::class.java).putExtra("query", query)); return true }
-            override fun onQueryTextChange(newText: String): Boolean = false
+        binding.progress.visibility = View.GONE
+        if (searchMode || favoritesMode) binding.bottomNavigation.visibility = View.GONE
+        if (favoritesMode) { binding.title.text="Избранное"; binding.searchView.visibility=View.GONE }
+        if (searchMode) {
+            binding.title.text="Результаты поиска"
+            val saved = getSharedPreferences("search",MODE_PRIVATE).getString("query","").orEmpty()
+            binding.searchView.setQuery(savedInstanceState?.getString("query") ?: intent.getStringExtra("query") ?: saved,false)
+        }
+        binding.searchView.setOnQueryTextListener(object: androidx.appcompat.widget.SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query:String):Boolean {
+                if (searchMode) load(query) else startActivity(Intent(this@MainActivity,SearchResultsActivity::class.java).putExtra("query",query))
+                return true
+            }
+            override fun onQueryTextChange(query:String):Boolean {
+                if (searchMode) load(query)
+                return true
+            }
         })
-        binding.bottomNavigation.setOnItemSelectedListener { item ->
-            when (item.itemId) { ru.mtuci.drivenext.R.id.navSettings -> startActivity(Intent(this, SettingsActivity::class.java)); ru.mtuci.drivenext.R.id.navFavorites -> startActivity(Intent(this, ru.mtuci.drivenext.presentation.catalog.FavoritesActivity::class.java)) }
-            true
+        binding.bottomNavigation.setOnItemSelectedListener {
+            when(it.itemId) {
+                R.id.navSettings -> startActivity(Intent(this,SettingsActivity::class.java))
+                R.id.navFavorites -> startActivity(Intent(this,FavoritesActivity::class.java))
+                else -> load()
+            }; true
         }
     }
+    override fun onStart() { super.onStart(); authModel.restore(force=true,protectedScreen=true) }
+    override fun onAuthenticated() { load(if(searchMode) binding.searchView.query.toString() else "") }
+    private fun load(query:String="") {
+        if (searchMode) getSharedPreferences("search",MODE_PRIVATE).edit().putString("query",query).apply()
+        work.run(if(favoritesMode) "favorites" else "cars",JSONObject().put("query",query))
+    }
+    private fun open(screen:Class<*>,car:Car) { startActivity(Intent(this,screen).putExtra("id",car.id)) }
+    override fun render(operation:String,value:JSONObject) {
+        if(operation!="cars" && operation!="favorites") return
+        val rows=value.getJSONArray("items")
+        adapter.submitList((0 until rows.length()).map { Car.fromJson(rows.getJSONObject(it)) })
+        binding.title.text=when { rows.length()==0 -> "Ничего не найдено"; favoritesMode -> "Избранное"; searchMode -> "Результаты поиска"; else -> "Доступные автомобили" }
+    }
+    override fun onSaveInstanceState(outState:Bundle) { outState.putString("query",binding.searchView.query.toString()); super.onSaveInstanceState(outState) }
 }

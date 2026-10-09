@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">DriveNext</string>
+    <string name="app_name">DriveNext ЛР 4</string>
     <string name="tagline">Поможем найти твою следующую поездку</string>
     <string name="no_connection_title">Нет подключения\nк интернету</string>
     <string name="no_connection_message">Проверьте подключение и повторите попытку</string>
@@ -80,4 +80,19 @@
     <string name="good_trip">Удачной поездки!</string>
     <string name="booking_success_message">Ваше бронирование успешно создано.</string>
     <string name="to_bookings">Перейти к своим бронированиям</string>
+    <string name="become_landlord">Стать арендодателем</string>
+    <string name="start_label">Начать</string>
+    <string name="car_address">Адрес расположения автомобиля</string>
+    <string name="car_year">Год выпуска</string>
+    <string name="car_brand">Марка автомобиля</string>
+    <string name="car_model">Модель автомобиля</string>
+    <string name="transmission">Тип трансмиссии</string>
+    <string name="mileage">Пробег</string>
+    <string name="description">Описание автомобиля</string>
+    <string name="send">Отправить</string>
+    <string name="add_car_photos">Добавление фотографий автомобиля</string>
+    <string name="choose_photos">Выбрать до 5 фотографий</string>
+    <string name="car_added">Автомобиль успешно добавлен и отправлен на одобрение</string>
+    <string name="to_home">На главную</string>
+    <string name="photo_selected">Фото выбрано</string>
 </resources>

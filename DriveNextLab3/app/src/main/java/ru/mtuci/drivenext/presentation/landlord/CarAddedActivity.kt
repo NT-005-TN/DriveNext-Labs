@@ -1,0 +1,3 @@
+package ru.mtuci.drivenext.presentation.landlord
+import android.content.Intent; import android.os.Bundle; import androidx.appcompat.app.AppCompatActivity; import ru.mtuci.drivenext.databinding.ActivityCarAddedBinding; import ru.mtuci.drivenext.presentation.main.MainActivity
+class CarAddedActivity:AppCompatActivity(){override fun onCreate(s:Bundle?){super.onCreate(s);val b=ActivityCarAddedBinding.inflate(layoutInflater);setContentView(b.root);b.homeButton.setOnClickListener{startActivity(Intent(this,MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))}}}

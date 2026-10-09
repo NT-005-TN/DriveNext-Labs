@@ -13,6 +13,7 @@ class SuccessActivity : AppCompatActivity() {
         val binding = ActivitySuccessBinding.inflate(layoutInflater)
         setContentView(binding.root)
         binding.nextButton.setOnClickListener {
+            // Очищаем черновик и удаляем экраны регистрации из истории.
             RegistrationDraft.clear()
             startActivity(Intent(this, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
         }

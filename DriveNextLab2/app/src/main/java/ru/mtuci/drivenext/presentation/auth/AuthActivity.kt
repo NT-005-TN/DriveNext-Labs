@@ -76,7 +76,7 @@ abstract class AuthActivity : AppCompatActivity() {
             }
     }
     private fun loading(show: Boolean) {
-        if (overlay == null) {
+        if (overlay == null || overlay?.parent == null) {
             overlay = FrameLayout(this).apply {
                 setBackgroundColor(0xAAFFFFFF.toInt()); isClickable = true; isFocusable = true
                 contentDescription = "Выполняется запрос к серверу"

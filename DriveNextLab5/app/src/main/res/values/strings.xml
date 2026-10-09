@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">DriveNext</string>
+    <string name="app_name">DriveNext ЛР 5</string>
     <string name="tagline">Поможем найти твою следующую поездку</string>
     <string name="no_connection_title">Нет подключения\nк интернету</string>
     <string name="no_connection_message">Проверьте подключение и повторите попытку</string>
@@ -94,4 +94,5 @@
     <string name="choose_photos">Выбрать до 5 фотографий</string>
     <string name="car_added">Автомобиль успешно добавлен и отправлен на одобрение</string>
     <string name="to_home">На главную</string>
+    <string name="photo_selected">Фото выбрано</string>
 </resources>
