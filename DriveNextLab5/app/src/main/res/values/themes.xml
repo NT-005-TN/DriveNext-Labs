@@ -3,7 +3,8 @@
     <style name="Theme.DriveNext" parent="Theme.Material3.Light.NoActionBar">
         <item name="colorPrimary">@color/purple_primary</item>
         <item name="colorOnPrimary">@color/surface</item>
-        <item name="android:fontFamily">sans</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="fontFamily">sans-serif</item>
         <item name="android:windowLightStatusBar">true</item>
         <item name="android:statusBarColor">@color/surface</item>
         <item name="android:navigationBarColor">@color/surface</item>

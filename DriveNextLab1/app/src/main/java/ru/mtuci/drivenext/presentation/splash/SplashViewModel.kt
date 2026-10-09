@@ -5,6 +5,5 @@ import ru.mtuci.drivenext.domain.ResolveStartDestinationUseCase
 import ru.mtuci.drivenext.domain.StartDestination
 
 class SplashViewModel(private val resolveStartDestination: ResolveStartDestinationUseCase) : ViewModel() {
-    // Получаем решение о переходе из use case.
-    fun destination(): StartDestination = resolveStartDestination.execute()
+    fun destination(): StartDestination = resolveStartDestination.execute() // Возвращает результат правила выбора стартового экрана.
 }

@@ -32,6 +32,10 @@ class NoConnectionActivity : AppCompatActivity() {
         binding.retryButton.setOnClickListener {
             // Повторно проверяем сеть перед переходом дальше.
             if (viewModel.hasInternetConnection()) {
+                if (intent.getBooleanExtra("return_to_caller", false)) {
+                    finish()
+                    return@setOnClickListener
+                }
                 val target = if (OnboardingPreferences(this).isCompleted()) {
                     LoginActivity::class.java
                 } else {

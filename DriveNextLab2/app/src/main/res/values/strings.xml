@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="photo_selected">Фото выбрано</string>
     <string name="app_name">DriveNext</string>
     <string name="tagline">Поможем найти твою следующую поездку</string>
     <string name="no_connection_title">Нет подключения\nк интернету</string>

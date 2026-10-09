@@ -20,39 +20,35 @@ import ru.mtuci.drivenext.presentation.connection.NoConnectionActivity
 import ru.mtuci.drivenext.presentation.onboarding.OnboardingActivity
 
 class SplashActivity : AppCompatActivity() {
-    // Ссылки на элементы XML-разметки.
-    private lateinit var binding: ActivitySplashBinding
-    // Фабрика передаёт зависимости во ViewModel.
-    private val viewModel: SplashViewModel by viewModels {
-        val useCase = ResolveStartDestinationUseCase(
-            NetworkMonitor(applicationContext),
-            OnboardingPreferences(applicationContext),
+    private lateinit var binding: ActivitySplashBinding // Хранит ссылки на элементы экрана; заполняется в onCreate.
+    private val viewModel: SplashViewModel by viewModels { // Получает ViewModel через фабрику и сохраняет её при пересоздании экрана.
+        val useCase = ResolveStartDestinationUseCase( // Создаёт правило выбора следующего экрана.
+            NetworkMonitor(applicationContext), // Передаёт объект проверки сети в правило запуска.
+            OnboardingPreferences(applicationContext), // Передаёт доступ к сохранённому флагу онбординга.
         )
-        object : ViewModelProvider.Factory {
-            @Suppress("UNCHECKED_CAST")
-            override fun <T : ViewModel> create(modelClass: Class<T>): T = SplashViewModel(useCase) as T
+        object : ViewModelProvider.Factory { // Задаёт способ создания ViewModel с зависимостями.
+            @Suppress("UNCHECKED_CAST") // Убирает предупреждение о приведении конкретной ViewModel к типу T.
+            override fun <T : ViewModel> create(modelClass: Class<T>): T = SplashViewModel(useCase) as T // Создаёт ViewModel с правилом запуска и возвращает её фабрике.
         }
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        installSplashScreen()
-        super.onCreate(savedInstanceState)
-        binding = ActivitySplashBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+    override fun onCreate(savedInstanceState: Bundle?) { // Подготавливает новый экран при вызове Android.
+        installSplashScreen() // Подключает системную заставку перед созданием Activity.
+        super.onCreate(savedInstanceState) // Выполняет стандартную инициализацию Activity с полученным состоянием.
+        binding = ActivitySplashBinding.inflate(layoutInflater) // Создаёт элементы из XML и сохраняет ссылки на них.
+        setContentView(binding.root) // Устанавливает созданную разметку как содержимое Activity.
 
-        // Показываем заставку 2,5 секунды без блокировки интерфейса.
-        lifecycleScope.launch {
-            delay(SPLASH_DURATION_MS)
-            val target = when (viewModel.destination()) {
-                StartDestination.NO_CONNECTION -> NoConnectionActivity::class.java
-                StartDestination.ONBOARDING -> OnboardingActivity::class.java
-                StartDestination.LOGIN -> LoginActivity::class.java
+        lifecycleScope.launch { // Запускает корутину, отменяемую при уничтожении Activity.
+            delay(SPLASH_DURATION_MS) // Ждёт 2,5 секунды, не блокируя интерфейс.
+            val target = when (viewModel.destination()) { // Получает решение и выбирает класс следующей Activity.
+                StartDestination.NO_CONNECTION -> NoConnectionActivity::class.java // Выбирает экран ошибки сети.
+                StartDestination.ONBOARDING -> OnboardingActivity::class.java // Выбирает вводные страницы.
+                StartDestination.LOGIN -> LoginActivity::class.java // Выбирает экран входа.
             }
-            // Открываем следующий экран и закрываем заставку.
-            startActivity(Intent(this@SplashActivity, target))
-            finish()
+            startActivity(Intent(this@SplashActivity, target)) // Просит Android открыть выбранный экран из текущей Activity.
+            finish() // Закрывает текущую Activity и убирает её из истории.
         }
     }
 
-    private companion object { const val SPLASH_DURATION_MS = 2_500L }
+    private companion object { const val SPLASH_DURATION_MS = 2_500L } // Задаёт длительность заставки в миллисекундах.
 }
