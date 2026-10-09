@@ -35,7 +35,7 @@ class CarRepository(private val context: Context, private val api: SupabaseAuthR
         "saveProfile" -> {
             val id = api.ownerId()
             val payload = JSONObject().put("id", id).put("name", p.optString("name").trim())
-                .put("surname", p.optString("surname").trim()).put("license_number", p.optString("license").ifBlank { null })
+                .put("surname", p.optString("surname").trim()).put("license_number", p.optString("license").trim().ifBlank { null } ?: JSONObject.NULL)
             if (p.optString("avatar").isNotBlank()) payload.put("profile_photo", api.photo("registration-documents", "avatar", p.getString("avatar")))
             api.call("/rest/v1/profiles?on_conflict=id", "POST", payload)
             profile()

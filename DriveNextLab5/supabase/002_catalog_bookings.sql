@@ -26,7 +26,9 @@ create policy cars_read on public.cars for select to authenticated using(active 
 drop policy if exists cars_insert on public.cars;
 create policy cars_insert on public.cars for insert to authenticated with check(owner_id=auth.uid() and not active);
 drop policy if exists cars_update on public.cars;
-create policy cars_update on public.cars for update to authenticated using(owner_id=auth.uid()) with check(owner_id=auth.uid() and (not active or jsonb_array_length(photo_paths) between 1 and 5));
+create policy cars_update on public.cars for update to authenticated using(owner_id=auth.uid()) with check(
+ owner_id=auth.uid() and (not active or jsonb_array_length(photo_paths) between 1 and 5)
+ and not exists(select 1 from jsonb_array_elements_text(photo_paths) as f(path) where left(f.path,37)<>auth.uid()::text||'/'));
 
 create table if not exists public.bookings (
  id uuid primary key,

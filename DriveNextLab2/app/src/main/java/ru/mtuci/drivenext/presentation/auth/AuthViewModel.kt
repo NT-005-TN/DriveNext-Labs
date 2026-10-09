@@ -57,8 +57,13 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     }
     fun google() = request { AuthUiState(event = "browser", message = auth.googleUrl()) }
     fun callback(uri: String) = request {
-        auth.completeOAuth(uri)
-        AuthUiState(event = if (app.secureStore.get("recovery") == "true") "password" else "main")
+        val account = auth.completeOAuth(uri)
+        AuthUiState(event = when {
+            app.secureStore.get("recovery") == "true" -> "password"
+            app.secureStore.get("pending_registration") == account.email ->
+                if (Draft.password.isNotBlank()) "continue_registration" else "pending"
+            else -> "main"
+        })
     }
     fun recover(email: String) = request { auth.recover(email); AuthUiState(event = "info", message = "Если аккаунт существует, на почту отправлена ссылка. Откройте её на этом устройстве.") }
     fun newPassword(password: String) = request { auth.updatePassword(password); AuthUiState(event = "main") }

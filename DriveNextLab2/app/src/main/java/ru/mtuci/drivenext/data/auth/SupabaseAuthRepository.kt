@@ -106,7 +106,11 @@ class SupabaseAuthRepository(context: Context, private val store: SecureStore) :
         val user = if (pending == data.email) {
             login(data.email, data.password)
         } else {
-            val result = jsonRequest("/auth/v1/signup", JSONObject().put("email", data.email).put("password", data.password))
+            // Ссылка из письма возвращает в ту лабораторную, которая начала регистрацию.
+            val (callback, challenge) = startPkce(false)
+            val result = jsonRequest("/auth/v1/signup?redirect_to=${Uri.encode(callback)}",
+                JSONObject().put("email", data.email).put("password", data.password)
+                    .put("code_challenge", challenge).put("code_challenge_method", "s256"))
             store.put("pending_registration", data.email)
             if (result.optString("access_token").isBlank()) throw AuthException("Отправлено письмо подтверждения. Подтвердите email, вернитесь сюда и нажмите «Далее» ещё раз. Данные формы сохранены.")
             saveSession(result)
