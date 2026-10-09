@@ -40,9 +40,9 @@ class CarRepository(private val context: Context, private val api: SupabaseAuthR
             api.call("/rest/v1/profiles?on_conflict=id", "POST", payload)
             profile()
         }
-        "book" -> JSONObject(api.call("/rest/v1/rpc/create_booking", "POST",
+        "book" -> JSONObject(api.call("/rest/v1/rpc/create_booking_with_time", "POST",
             JSONObject().put("p_request", p.getString("request")).put("p_car", p.getLong("id"))
-                .put("p_start", p.getString("start")).put("p_end", p.getString("end"))))
+                .put("p_start", p.getString("start")).put("p_end", p.getString("end")).put("p_start_time",p.getString("start_time"))))
         "bookings" -> items(api.call("/rest/v1/bookings?order=created_at.desc"))
         "booking" -> first(api.call("/rest/v1/bookings?id=eq." + Uri.encode(p.getString("id"))))
         "cancel" -> {

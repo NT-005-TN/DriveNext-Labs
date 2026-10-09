@@ -13,7 +13,7 @@ class BookingsActivity:WorkspaceActivity() {
             val row=rows.getJSONObject(i)
             val status=if(row.getString("status")=="cancelled") "Отменено" else if(LocalDate.parse(row.getString("end_date")).isBefore(LocalDate.now())) "Завершено" else "Активно"
             body.addView(Button(this).apply {
-                text=row.getString("car_name")+"\n"+row.getString("start_date")+" — "+row.getString("end_date")+"\n"+status
+                text=row.getString("car_name")+"\n"+row.getString("start_date")+" "+ru.mtuci.drivenext.domain.RentalStartTime.display(row.optString("start_time"))+" — "+row.getString("end_date")+"\n"+status
                 setOnClickListener { startActivity(Intent(this@BookingsActivity,BookingDetailsActivity::class.java).putExtra("id",row.getString("id"))) }
             })
         }

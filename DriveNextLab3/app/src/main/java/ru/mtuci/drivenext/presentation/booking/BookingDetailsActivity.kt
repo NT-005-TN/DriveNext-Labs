@@ -11,7 +11,7 @@ class BookingDetailsActivity:WorkspaceActivity() {
         val body=screen("Бронирование")
         val active=value.getString("status")=="approved" && !LocalDate.parse(value.getString("end_date")).isBefore(LocalDate.now())
         body.label("Номер: "+value.getString("id")+"\n"+value.getString("car_name")+"\n"+value.getString("address")+
-            "\n"+value.getString("start_date")+" — "+value.getString("end_date")+"\nВодитель: "+value.getString("driver_name")+
+            "\n"+value.getString("start_date")+" "+ru.mtuci.drivenext.domain.RentalStartTime.display(value.optString("start_time"))+" — "+value.getString("end_date")+"\nВодитель: "+value.getString("driver_name")+
             "\nУдостоверение: "+value.getString("license_number")+"\nТариф: "+value.getInt("price_per_day")+" ₽/день"+
             "\nАренда: "+value.getLong("rental_total")+" ₽\nСтраховка: "+value.getLong("insurance_total")+
             " ₽\nИтого: "+value.getLong("total")+" ₽\nДепозит: "+value.getInt("deposit")+" ₽"+

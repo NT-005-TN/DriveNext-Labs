@@ -11,8 +11,6 @@ import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import ru.mtuci.drivenext.data.connectivity.NetworkMonitor
 import ru.mtuci.drivenext.domain.*
-import java.net.HttpURLConnection
-import java.net.URL
 import java.security.MessageDigest
 import java.security.SecureRandom
 import java.time.LocalDate
@@ -23,35 +21,30 @@ class SupabaseAuthRepository(context: Context, private val store: SecureStore) :
     private val lock = Mutex()
     private val base = "https://owkzoimnjojfuoxzufnz.supabase.co"
     // Публичный клиентский ключ: доступ к данным ограничен RLS, не этим ключом.
-    private val publicKey = "sb_publishable_xs_-HbeUup8rjXg5264fNA_yjm4OfRZ"
+    private val gateway = SupabaseGateway()
     private val redirect = "drivenextlab" + BuildConfig.APPLICATION_ID.substringAfterLast("lab") + "://auth/callback"
     override fun hasNetwork() = NetworkMonitor(context).hasInternetConnection()
-    private suspend fun <T> io(block: () -> T): T = withContext(Dispatchers.IO) {
-        lock.withLock { if (!hasNetwork()) throw NoInternetException(); block() }
+    private suspend fun <T> io(block: suspend () -> T): T = withContext(Dispatchers.IO) {
+        lock.withLock {
+            if (!hasNetwork()) throw NoInternetException()
+            try { block() }
+            catch(e:kotlinx.coroutines.CancellationException) { throw e }
+            // Полный текст RestException содержит заголовки: показываем только ошибку сервера.
+            catch(e:io.github.jan.supabase.exceptions.RestException) { throw AuthException(e.error.take(500)) }
+            catch(e:io.github.jan.supabase.exceptions.HttpRequestException) { throw AuthException("Не удалось связаться с сервером. Повторите попытку.") }
+            catch(e:io.ktor.client.plugins.HttpRequestTimeoutException) { throw AuthException("Сервер не ответил вовремя. Повторите попытку.") }
+        }
     }
 
     private class ApiError(val status: Int, val code: String, message: String) : Exception(message)
 
     // Запросы выполняются на IO-потоке, с тайм-аутами и без вывода токенов в логи.
-    private fun request(path: String, method: String = "GET", body: ByteArray? = null,
+    private suspend fun request(path: String, method: String = "GET", body: ByteArray? = null,
                         token: String? = null, mime: String = "application/json", upsert: Boolean = false): String {
-        val connection = URL(base + path).openConnection() as HttpURLConnection
         try {
-            connection.requestMethod = method
-            connection.connectTimeout = 15000
-            connection.readTimeout = 20000
-            connection.instanceFollowRedirects = false
-            connection.setRequestProperty("apikey", publicKey)
-            connection.setRequestProperty("Content-Type", mime)
-            token?.let { connection.setRequestProperty("Authorization", "Bearer $it") }
-            if (upsert) {
-                connection.setRequestProperty("x-upsert", "true")
-                connection.setRequestProperty("Prefer", "resolution=merge-duplicates,return=minimal")
-            }
-            if (body != null) { connection.doOutput = true; connection.outputStream.use { it.write(body) } }
-            val status = connection.responseCode
-            val response = (if (status in 200..299) connection.inputStream else connection.errorStream)
-                ?.bufferedReader()?.use { it.readText() }.orEmpty()
+            val result = gateway.request(path, method, body, token, mime, upsert)
+            val status = result.status
+            val response = result.body
             if (status !in 200..299) {
                 val json = runCatching { JSONObject(response) }.getOrDefault(JSONObject())
                 val code = json.optString("error_code", json.optString("code"))
@@ -68,9 +61,9 @@ class SupabaseAuthRepository(context: Context, private val store: SecureStore) :
         } catch (e: java.io.IOException) {
             if (!hasNetwork()) throw NoInternetException()
             throw AuthException("Не удалось связаться с сервером. Проверьте сеть и повторите попытку.")
-        } finally { connection.disconnect() }
+        }
     }
-    private fun jsonRequest(path: String, data: JSONObject, token: String? = null, method: String = "POST") =
+    private suspend fun jsonRequest(path: String, data: JSONObject, token: String? = null, method: String = "POST") =
         JSONObject(request(path, method, data.toString().toByteArray(), token).ifBlank { "{}" })
     private fun session() = store.get("session")?.let { runCatching { JSONObject(it) }.getOrNull() }
     private fun saveSession(json: JSONObject): Account {
@@ -80,7 +73,7 @@ class SupabaseAuthRepository(context: Context, private val store: SecureStore) :
         return account(json.getJSONObject("user"))
     }
     private fun account(user: JSONObject) = Account(user.getString("id"), user.optString("email"))
-    private fun activeSession(): JSONObject {
+    private suspend fun activeSession(): JSONObject {
         var data = session() ?: throw AuthException("Войдите в аккаунт.")
         if (data.optLong("expires_at") <= System.currentTimeMillis() / 1000 + 60) {
             try {
@@ -93,7 +86,7 @@ class SupabaseAuthRepository(context: Context, private val store: SecureStore) :
         }
         return data
     }
-    private fun login(email: String, password: String) = saveSession(jsonRequest("/auth/v1/token?grant_type=password", JSONObject().put("email", email).put("password", password)))
+    private suspend fun login(email: String, password: String) = saveSession(jsonRequest("/auth/v1/token?grant_type=password", JSONObject().put("email", email).put("password", password)))
     override suspend fun signIn(email: String, password: String) = io { login(email, password) }
     override suspend fun restore(): Account? = io {
         if (session() == null) return@io null
@@ -130,7 +123,7 @@ class SupabaseAuthRepository(context: Context, private val store: SecureStore) :
         store.remove("pending_registration")
         user
     }
-    private fun upload(userId: String, kind: String, source: String, token: String, bucket: String = "registration-documents"): String {
+    private suspend fun upload(userId: String, kind: String, source: String, token: String, bucket: String = "registration-documents"): String {
         val uri = Uri.parse(source)
         val mime = context.contentResolver.getType(uri) ?: "image/jpeg"
         if (mime !in listOf("image/jpeg", "image/png", "image/webp")) throw AuthException("Выберите фото JPEG, PNG или WebP.")
@@ -154,7 +147,11 @@ class SupabaseAuthRepository(context: Context, private val store: SecureStore) :
     }
 
     suspend fun call(path: String, method: String = "GET", data: JSONObject? = null): String = io {
-        request(path, method, data?.toString()?.toByteArray(), activeSession().getString("access_token"), upsert = method == "POST" && path.startsWith("/rest/v1/") && !path.contains("/rpc/"))
+        val session = activeSession()
+        if(path.startsWith("/rest/v1/rpc/") && method=="POST") {
+            gateway.useSession(session)
+            gateway.rpc(path.substringAfterLast('/'),data ?: JSONObject())
+        } else request(path, method, data?.toString()?.toByteArray(), session.getString("access_token"), upsert = method == "POST" && path.startsWith("/rest/v1/"))
     }
     suspend fun ownerId(): String = io { activeSession().getJSONObject("user").getString("id") }
     suspend fun photo(bucket: String, path: String, source: String): String = io {
@@ -162,15 +159,9 @@ class SupabaseAuthRepository(context: Context, private val store: SecureStore) :
         upload(session.getJSONObject("user").getString("id"), path, source, session.getString("access_token"), bucket)
     }
     suspend fun image(bucket: String, path: String): android.graphics.Bitmap? = io {
-        val response = jsonRequest("/storage/v1/object/sign/" + bucket + "/" + path,
-            JSONObject().put("expiresIn", 60), activeSession().getString("access_token"))
-        val signed = response.getString("signedURL")
-        val url = if (signed.startsWith("/storage/v1/")) base + signed else base + "/storage/v1" + signed
-        val connection = URL(url).openConnection() as HttpURLConnection
-        try {
-            connection.connectTimeout = 15000; connection.readTimeout = 20000
-            connection.inputStream.use { android.graphics.BitmapFactory.decodeStream(it) }
-        } finally { connection.disconnect() }
+        gateway.useSession(activeSession())
+        val bytes = gateway.image(bucket,path)
+        android.graphics.BitmapFactory.decodeByteArray(bytes,0,bytes.size)
     }
     private fun random() = Base64.encodeToString(ByteArray(32).also { SecureRandom().nextBytes(it) }, Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING)
     private fun startPkce(recovery: Boolean): Pair<String, String> {
@@ -216,14 +207,13 @@ class SupabaseAuthRepository(context: Context, private val store: SecureStore) :
             // Локальный выход работает и при недоступном сервере.
             try {
                 if (hasNetwork() && !token.isNullOrBlank()) request("/auth/v1/logout?scope=local", "POST", token = token)
-            } catch (_: ApiError) {
-                // Серверная сессия могла уже истечь.
-            } catch (_: AuthException) {
-                // При сбое сети всё равно удаляем локальные токены.
-            } catch (_: NoInternetException) {
-                // Сеть могла исчезнуть во время запроса.
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
+            } catch (_: Exception) {
+                // Ошибка сервера не мешает выходу на этом устройстве.
             } finally {
                 store.remove("session"); store.remove("recovery"); store.remove("oauth"); store.remove("car_draft")
+                gateway.clearSession()
             }
             Unit
         }

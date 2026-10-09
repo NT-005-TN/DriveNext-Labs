@@ -51,6 +51,15 @@ class AuthSmokeTest {
             assertEquals("google", uri.getQueryParameter("provider"))
             assertEquals("s256", uri.getQueryParameter("code_challenge_method"))
             assertEquals(43, uri.getQueryParameter("code_challenge")!!.length)
+            // Включённый провайдер без client secret не пройдёт эту проверку.
+            val connection = java.net.URL(uri.toString()).openConnection() as java.net.HttpURLConnection
+            try {
+                connection.instanceFollowRedirects = false
+                connection.connectTimeout = 15000
+                connection.readTimeout = 15000
+                assertEquals(302, connection.responseCode)
+                assertEquals("accounts.google.com", android.net.Uri.parse(connection.getHeaderField("Location")).host)
+            } finally { connection.disconnect() }
             val callback = android.net.Uri.parse(uri.getQueryParameter("redirect_to"))
             assertEquals("drivenextlab5", callback.scheme)
             val pending = org.json.JSONObject(store.get("oauth")!!)

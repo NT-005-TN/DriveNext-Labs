@@ -20,7 +20,11 @@
 
 Проект: `owkzoimnjojfuoxzufnz`, API: `https://owkzoimnjojfuoxzufnz.supabase.co`.
 Приложение обращается по HTTPS к Supabase Auth, PostgREST и Storage через
-`SupabaseAuthRepository`. В коде только публичный publishable key; пароль базы,
+`SupabaseAuthRepository` и `SupabaseGateway` (Supabase-KT 3.2.2, Ktor Android 3.2.2,
+Kotlin 2.2.0). Gateway создаёт SDK-клиент с Auth, PostgREST и Storage.
+Запросы Auth используют его HTTP-клиент; собственная проверка PKCE/state сохранена.
+SDK не пишет сессию открытым текстом: постоянное хранение остаётся в SecureStore.
+В коде только публичный publishable key; пароль базы,
 service_role и Google client secret в приложение не включаются.
 
 Поток вызовов: Activity → AuthViewModel → AuthUseCase → AuthRepository → Supabase.
@@ -76,7 +80,7 @@ Google-провайдер включён в проекте; отдельный W
 
 Сборка, локальные тесты и четыре проверки на эмуляторе (шифрование, неверный пароль
 на реальном Supabase, отклонение чужого OAuth callback, формирование Google PKCE
-запроса с проверкой настроек реального сервера и отклонением чужого state) прошли.
+запроса с реальным ответом HTTP 302 на accounts.google.com и отклонением чужого state) прошли.
 Успешная регистрация с подтверждением почты, полный Google-вход и восстановление
 пароля требуют проверки с аккаунтом владельца; прохождение пока не подтверждено.
 
