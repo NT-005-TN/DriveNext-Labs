@@ -19,6 +19,8 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     private val mutable = MutableStateFlow(AuthUiState())
     val state = mutable.asStateFlow()
     private var restored = false
+    private var pendingCallback: String? = null
+    private var handledCallback: String? = null
     fun consume() { mutable.value = AuthUiState() }
     fun checkNetwork() {
         if (!mutable.value.busy && !auth.hasNetwork()) mutable.value = AuthUiState(event = "offline")
@@ -31,6 +33,11 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
             catch (e: CancellationException) { throw e }
             catch (_: NoInternetException) { mutable.value = AuthUiState(event = "offline") }
             catch (e: Exception) { mutable.value = AuthUiState(event = "error", message = e.message ?: "Не удалось выполнить запрос. Повторите попытку.") }
+            finally {
+                if (kotlinx.coroutines.currentCoroutineContext()[kotlinx.coroutines.Job]?.isActive == true) {
+                    pendingCallback?.let { uri -> pendingCallback = null; callback(uri) }
+                }
+            }
         }
     }
     fun login(email: String, password: String) = request {
@@ -43,9 +50,9 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     fun restore(force: Boolean = false, protectedScreen: Boolean = false) {
         if (force) restored = false
         if (restored) return
-        restored = true
         request {
             val account = auth.restore()
+            restored = true
             AuthUiState(event = when {
                 account == null -> if (protectedScreen) "choice" else null
                 app.secureStore.get("recovery") == "true" -> "password"
@@ -56,14 +63,19 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
     fun google() = request { AuthUiState(event = "browser", message = auth.googleUrl()) }
-    fun callback(uri: String) = request {
-        val account = auth.completeOAuth(uri)
-        AuthUiState(event = when {
-            app.secureStore.get("recovery") == "true" -> "password"
-            app.secureStore.get("pending_registration") == account.email ->
-                if (Draft.password.isNotBlank()) "continue_registration" else "pending"
-            else -> "main"
-        })
+    fun callback(uri: String) {
+        if (handledCallback == uri) return
+        if (mutable.value.busy) { pendingCallback = uri; return }
+        request {
+            val account = auth.completeOAuth(uri)
+            handledCallback = uri
+            AuthUiState(event = when {
+                app.secureStore.get("recovery") == "true" -> "password"
+                app.secureStore.get("pending_registration") == account.email ->
+                    if (Draft.password.isNotBlank()) "continue_registration" else "pending"
+                else -> "main"
+            })
+        }
     }
     fun recover(email: String) = request { auth.recover(email); AuthUiState(event = "info", message = "Если аккаунт существует, на почту отправлена ссылка. Откройте её на этом устройстве.") }
     fun newPassword(password: String) = request { auth.updatePassword(password); AuthUiState(event = "main") }

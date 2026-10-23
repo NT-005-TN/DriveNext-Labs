@@ -7,6 +7,7 @@ import ru.mtuci.drivenext.databinding.ActivityRegisterStep2Binding
 import ru.mtuci.drivenext.presentation.auth.AuthActivity
 import ru.mtuci.drivenext.presentation.common.afterTextChanged
 import ru.mtuci.drivenext.presentation.common.showDatePicker
+import ru.mtuci.drivenext.presentation.common.restoreDatePicker
 
 class RegisterStep2Activity : AuthActivity() {
     private lateinit var binding: ActivityRegisterStep2Binding
@@ -29,6 +30,7 @@ class RegisterStep2Activity : AuthActivity() {
         updateState()
         binding.backButton.setOnClickListener { finish() }
         binding.birthDateInput.setOnClickListener { showDatePicker(getString(R.string.birth_date), "MM/dd/yyyy") { binding.birthDateInput.setText(it) } }
+        restoreDatePicker(getString(R.string.birth_date), "MM/dd/yyyy") { binding.birthDateInput.setText(it) }
         binding.nextButton.setOnClickListener {
             val error = authModel.step2(binding.surnameInput.text.toString(), binding.nameInput.text.toString(), binding.birthDateInput.text.toString(), gender())
             if (error != null) message(error) else { save(); navigate(RegisterStep3Activity::class.java) }

@@ -26,7 +26,7 @@
         <activity android:name=".presentation.catalog.CarDetailsActivity" />
         <activity android:name=".presentation.settings.SettingsActivity" />
         <activity android:name=".presentation.catalog.SearchResultsActivity" />
-        <activity android:name=".presentation.auth.AuthChoiceActivity" android:exported="true">
+        <activity android:name=".presentation.splash.SplashActivity" android:exported="true" android:theme="@style/Theme.DriveNext.Splash">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -49,6 +49,6 @@
         <activity android:name=".presentation.main.MainActivity" />
         <activity android:name=".presentation.onboarding.OnboardingActivity" />
         <activity android:name=".presentation.connection.NoConnectionActivity" />
-        <activity android:name=".presentation.splash.SplashActivity" android:theme="@style/Theme.DriveNext.Splash" />
+        <activity android:name=".presentation.auth.AuthChoiceActivity" />
     </application>
 </manifest>

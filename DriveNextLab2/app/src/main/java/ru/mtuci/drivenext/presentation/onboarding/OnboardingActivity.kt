@@ -14,7 +14,7 @@ import androidx.viewpager2.widget.ViewPager2
 import ru.mtuci.drivenext.R
 import ru.mtuci.drivenext.data.preferences.OnboardingPreferences
 import ru.mtuci.drivenext.databinding.ActivityOnboardingBinding
-import ru.mtuci.drivenext.presentation.auth.LoginActivity
+import ru.mtuci.drivenext.presentation.auth.AuthChoiceActivity
 
 class OnboardingActivity : AppCompatActivity() {
     private lateinit var binding: ActivityOnboardingBinding
@@ -71,7 +71,7 @@ class OnboardingActivity : AppCompatActivity() {
     private fun finishOnboarding() {
         // Сохраняем результат и переходим к авторизации.
         viewModel.complete()
-        startActivity(Intent(this, LoginActivity::class.java))
+        startActivity(Intent(this, AuthChoiceActivity::class.java))
         finish()
     }
 

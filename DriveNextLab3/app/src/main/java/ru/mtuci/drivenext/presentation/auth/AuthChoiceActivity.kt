@@ -11,9 +11,12 @@ class AuthChoiceActivity : AuthActivity() {
         super.onCreate(savedInstanceState)
         val binding = ActivityAuthChoiceBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        authModel.restore()
         // Пользователь выбирает вход или создание нового аккаунта.
         binding.signInButton.setOnClickListener { startActivity(Intent(this, LoginActivity::class.java)) }
         binding.registerButton.setOnClickListener { startActivity(Intent(this, RegisterStep1Activity::class.java)) }
+    }
+    override fun onStart() {
+        super.onStart()
+        authModel.restore()
     }
 }

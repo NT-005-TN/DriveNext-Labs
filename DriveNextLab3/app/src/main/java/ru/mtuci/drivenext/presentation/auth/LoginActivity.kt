@@ -22,7 +22,8 @@ class LoginActivity : AuthActivity() {
         binding.googleButton.setOnClickListener { authModel.google() }
         binding.registerLink.setOnClickListener { navigate(RegisterStep1Activity::class.java) }
         binding.forgotPassword.setOnClickListener { authModel.recover(binding.emailInput.text.toString()) }
-        if (savedInstanceState == null) intent.data?.toString()?.let(authModel::callback)
+        // ViewModel исключает повтор, но после гибели процесса Intent нужен снова.
+        intent.data?.toString()?.let(authModel::callback)
     }
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)

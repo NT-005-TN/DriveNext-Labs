@@ -11,7 +11,7 @@ import ru.mtuci.drivenext.R
 import ru.mtuci.drivenext.data.connectivity.NetworkMonitor
 import ru.mtuci.drivenext.data.preferences.OnboardingPreferences
 import ru.mtuci.drivenext.databinding.ActivityNoConnectionBinding
-import ru.mtuci.drivenext.presentation.auth.LoginActivity
+import ru.mtuci.drivenext.presentation.auth.AuthChoiceActivity
 import ru.mtuci.drivenext.presentation.onboarding.OnboardingActivity
 
 class NoConnectionActivity : AppCompatActivity() {
@@ -37,7 +37,7 @@ class NoConnectionActivity : AppCompatActivity() {
                     return@setOnClickListener
                 }
                 val target = if (OnboardingPreferences(this).isCompleted()) {
-                    LoginActivity::class.java
+                    AuthChoiceActivity::class.java
                 } else {
                     OnboardingActivity::class.java
                 }

@@ -86,7 +86,9 @@ class SupabaseAuthRepository(context: Context, private val store: SecureStore) :
         return data
     }
     private suspend fun login(email: String, password: String) = saveSession(jsonRequest("/auth/v1/token?grant_type=password", JSONObject().put("email", email).put("password", password)))
-    override suspend fun signIn(email: String, password: String) = io { login(email, password) }
+    override suspend fun signIn(email: String, password: String) = io {
+        login(email, password).also { store.remove("recovery") }
+    }
     override suspend fun restore(): Account? = io {
         if (session() == null) return@io null
         try { account(JSONObject(request("/auth/v1/user", token = activeSession().getString("access_token")))) }
@@ -169,7 +171,7 @@ class SupabaseAuthRepository(context: Context, private val store: SecureStore) :
         val code = uri.getQueryParameter("code") ?: throw AuthException("Сервер не вернул код входа.")
         val result = jsonRequest("/auth/v1/token?grant_type=pkce", JSONObject().put("auth_code", code).put("code_verifier", pending.getString("verifier")))
         val user = saveSession(result)
-        if (pending.optBoolean("recovery")) store.put("recovery", "true")
+        if (pending.optBoolean("recovery")) store.put("recovery", "true") else store.remove("recovery")
         store.remove("oauth")
         user
     }

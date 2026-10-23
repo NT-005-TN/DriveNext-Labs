@@ -11,6 +11,7 @@ import ru.mtuci.drivenext.databinding.ActivityBookingBinding
 import ru.mtuci.drivenext.domain.RentalQuote
 import ru.mtuci.drivenext.presentation.common.WorkspaceActivity
 import ru.mtuci.drivenext.presentation.common.showDatePicker
+import ru.mtuci.drivenext.presentation.common.restoreDatePicker
 class BookingActivity:WorkspaceActivity() {
     private lateinit var b:ActivityBookingBinding
     private var car:JSONObject?=null
@@ -24,6 +25,8 @@ class BookingActivity:WorkspaceActivity() {
         startTime=savedInstanceState?.getString("start_time").orEmpty()
         requestId=savedInstanceState?.getString("request")?:requestId
         b.startDate.setOnClickListener { showDatePicker("Дата начала","yyyy-MM-dd") { start=it;requestId=UUID.randomUUID().toString();calculate() } }
+        restoreDatePicker("Дата начала","yyyy-MM-dd") { start=it;requestId=UUID.randomUUID().toString();calculate() }
+        restoreDatePicker("Дата окончания","yyyy-MM-dd") { end=it;requestId=UUID.randomUUID().toString();calculate() }
         b.endDate.setOnClickListener { showDatePicker("Дата окончания","yyyy-MM-dd") { end=it;requestId=UUID.randomUUID().toString();calculate() } }
         b.startTime.setOnClickListener {
             val selected=runCatching { java.time.LocalTime.parse(startTime) }.getOrDefault(java.time.LocalTime.NOON)

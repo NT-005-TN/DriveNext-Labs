@@ -11,6 +11,7 @@ import ru.mtuci.drivenext.databinding.ActivityRegisterStep3Binding
 import ru.mtuci.drivenext.presentation.auth.AuthActivity
 import ru.mtuci.drivenext.presentation.common.afterTextChanged
 import ru.mtuci.drivenext.presentation.common.showDatePicker
+import ru.mtuci.drivenext.presentation.common.restoreDatePicker
 
 class RegisterStep3Activity : AuthActivity() {
     private lateinit var binding: ActivityRegisterStep3Binding
@@ -34,6 +35,7 @@ class RegisterStep3Activity : AuthActivity() {
         renderPhotos(); updateState()
         binding.backButton.setOnClickListener { finish() }
         binding.issueDateInput.setOnClickListener { showDatePicker(getString(R.string.issue_date), "dd/MM/yyyy") { binding.issueDateInput.setText(it) } }
+        restoreDatePicker(getString(R.string.issue_date), "dd/MM/yyyy") { binding.issueDateInput.setText(it) }
         binding.profilePhotoButton.setOnClickListener { pick("PROFILE") }
         binding.licensePhotoButton.setOnClickListener { pick("LICENSE") }
         binding.passportPhotoButton.setOnClickListener { pick("PASSPORT") }

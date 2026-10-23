@@ -15,7 +15,7 @@ import ru.mtuci.drivenext.data.preferences.OnboardingPreferences
 import ru.mtuci.drivenext.databinding.ActivitySplashBinding
 import ru.mtuci.drivenext.domain.ResolveStartDestinationUseCase
 import ru.mtuci.drivenext.domain.StartDestination
-import ru.mtuci.drivenext.presentation.auth.LoginActivity
+import ru.mtuci.drivenext.presentation.auth.AuthChoiceActivity
 import ru.mtuci.drivenext.presentation.connection.NoConnectionActivity
 import ru.mtuci.drivenext.presentation.onboarding.OnboardingActivity
 
@@ -43,7 +43,7 @@ class SplashActivity : AppCompatActivity() {
             val target = when (viewModel.destination()) {
                 StartDestination.NO_CONNECTION -> NoConnectionActivity::class.java
                 StartDestination.ONBOARDING -> OnboardingActivity::class.java
-                StartDestination.LOGIN -> LoginActivity::class.java
+                StartDestination.LOGIN -> AuthChoiceActivity::class.java
             }
             startActivity(Intent(this@SplashActivity, target))
             finish()

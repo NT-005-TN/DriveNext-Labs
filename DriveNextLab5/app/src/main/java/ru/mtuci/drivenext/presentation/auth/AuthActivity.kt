@@ -27,6 +27,8 @@ import ru.mtuci.drivenext.presentation.registration.RegisterStep3Activity
 abstract class AuthActivity : AppCompatActivity() {
     protected val authModel: AuthViewModel by viewModels()
     private var overlay: FrameLayout? = null
+    private var authBusy = false
+    private var workspaceBusy = false
     private var passwordDialog: androidx.appcompat.app.AlertDialog? = null
     override fun onStart() { super.onStart(); authModel.checkNetwork() }
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -37,7 +39,8 @@ abstract class AuthActivity : AppCompatActivity() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 authModel.state.collect { state ->
-                    loading(state.busy)
+                    authBusy = state.busy
+                    showLoading()
                     val event = state.event ?: return@collect
                     authModel.consume()
                     when (event) {
@@ -76,6 +79,10 @@ abstract class AuthActivity : AppCompatActivity() {
             }
     }
     protected fun loading(show: Boolean) {
+        workspaceBusy = show
+        showLoading()
+    }
+    private fun showLoading() {
         if (overlay == null || overlay?.parent == null) {
             overlay = FrameLayout(this).apply {
                 setBackgroundColor(0xAAFFFFFF.toInt()); isClickable = true; isFocusable = true
@@ -84,6 +91,6 @@ abstract class AuthActivity : AppCompatActivity() {
             }
             addContentView(overlay, ViewGroup.LayoutParams(-1, -1))
         }
-        overlay?.visibility = if (show) View.VISIBLE else View.GONE
+        overlay?.visibility = if (authBusy || workspaceBusy) View.VISIBLE else View.GONE
     }
 }

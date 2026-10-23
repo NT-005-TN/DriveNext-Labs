@@ -28,7 +28,8 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".presentation.auth.AuthChoiceActivity"
+            android:name=".presentation.splash.SplashActivity"
+            android:theme="@style/Theme.DriveNext.Splash"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -37,6 +38,6 @@
         </activity>
         <activity android:name=".presentation.onboarding.OnboardingActivity" />
         <activity android:name=".presentation.connection.NoConnectionActivity" />
-        <activity android:name=".presentation.splash.SplashActivity" android:theme="@style/Theme.DriveNext.Splash" />
+        <activity android:name=".presentation.auth.AuthChoiceActivity" />
     </application>
 </manifest>

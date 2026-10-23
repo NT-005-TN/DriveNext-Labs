@@ -15,7 +15,11 @@ class ProfileActivity:WorkspaceActivity() {
     private val picker=registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri->
         if(uri!=null) {
             runCatching { contentResolver.takePersistableUriPermission(uri,Intent.FLAG_GRANT_READ_URI_PERMISSION) }
-            chosen=uri.toString();avatar.tag=chosen;avatar.setImageURI(uri)
+            chosen=uri.toString()
+            if(::avatar.isInitialized) {
+                avatar.tag=chosen
+                runCatching { avatar.setImageURI(uri) }.onFailure { message("Не удалось открыть фото. Выберите его повторно.") }
+            }
         }
     }
     override fun onCreate(savedInstanceState:Bundle?) {
@@ -28,7 +32,8 @@ class ProfileActivity:WorkspaceActivity() {
         avatar=ImageView(this).apply { contentDescription="Нажмите, чтобы выбрать аватар";setImageResource(ru.mtuci.drivenext.R.drawable.ic_app_logo);setOnClickListener { picker.launch(arrayOf("image/jpeg","image/png","image/webp")) } }
         body.addView(avatar,LinearLayout.LayoutParams(250,250))
         if(operation=="saveProfile") { chosen="";restoredFields=null }
-        if(chosen.isNotBlank()) avatar.setImageURI(android.net.Uri.parse(chosen))
+        if(chosen.isNotBlank()) runCatching { avatar.setImageURI(android.net.Uri.parse(chosen)) }
+            .onFailure { message("Не удалось открыть фото. Выберите его повторно.") }
         else showPhoto(avatar,"registration-documents",value.optString("profile_photo"))
         body.label(value.optString("email"))
         fun field(hint:String,text:String)=EditText(this).apply { this.hint=hint;setText(text);body.addView(this) }
