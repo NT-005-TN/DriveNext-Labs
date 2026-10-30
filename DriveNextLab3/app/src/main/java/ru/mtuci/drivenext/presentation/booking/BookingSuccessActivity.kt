@@ -6,6 +6,7 @@ import ru.mtuci.drivenext.presentation.auth.AuthActivity
 import ru.mtuci.drivenext.presentation.main.MainActivity
 class BookingSuccessActivity:AuthActivity() {
     override fun onCreate(savedInstanceState:Bundle?) {
+        // Предлагаем открыть список броней или очистить стек и вернуться домой.
         super.onCreate(savedInstanceState);val b=ActivityBookingSuccessBinding.inflate(layoutInflater);setContentView(b.root)
         b.bookingsButton.setOnClickListener { startActivity(Intent(this,BookingsActivity::class.java)) }
         b.homeButton.setOnClickListener { navigate(MainActivity::class.java,true) }

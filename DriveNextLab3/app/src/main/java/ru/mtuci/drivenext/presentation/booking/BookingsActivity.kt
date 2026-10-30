@@ -5,8 +5,10 @@ import org.json.JSONObject
 import java.time.LocalDate
 import ru.mtuci.drivenext.presentation.common.*
 class BookingsActivity:WorkspaceActivity() {
+    // При открытии запрашиваем список бронирований текущего пользователя.
     override fun onStart() { super.onStart();screen("Мои бронирования");work.run("bookings") }
     override fun render(operation:String,value:JSONObject) {
+        // Для каждой серверной строки создаём кнопку с датами и статусом.
         val body=screen("Мои бронирования");val rows=value.getJSONArray("items")
         if(rows.length()==0) body.label("Бронирований пока нет")
         for(i in 0 until rows.length()) {

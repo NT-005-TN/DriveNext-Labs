@@ -12,6 +12,7 @@ class ProfileActivity:WorkspaceActivity() {
     private lateinit var avatar:ImageView
     private var chosen:String=""
     private var restoredFields:Bundle?=null
+    // Системный выбор файла возвращает URI нового аватара.
     private val picker=registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri->
         if(uri!=null) {
             runCatching { contentResolver.takePersistableUriPermission(uri,Intent.FLAG_GRANT_READ_URI_PERMISSION) }
@@ -23,11 +24,13 @@ class ProfileActivity:WorkspaceActivity() {
         }
     }
     override fun onCreate(savedInstanceState:Bundle?) {
+        // Сначала показываем каркас, затем запрашиваем серверный профиль.
         super.onCreate(savedInstanceState);screen("Профиль");chosen=savedInstanceState?.getString("avatar").orEmpty()
         restoredFields=savedInstanceState
         work.run("profile")
     }
     override fun render(operation:String,value:JSONObject) {
+        // Пересоздаём содержимое экрана по актуальному ответу сервера.
         val body=screen("Профиль")
         avatar=ImageView(this).apply { contentDescription="Нажмите, чтобы выбрать аватар";setImageResource(ru.mtuci.drivenext.R.drawable.ic_app_logo);setOnClickListener { picker.launch(arrayOf("image/jpeg","image/png","image/webp")) } }
         body.addView(avatar,LinearLayout.LayoutParams(250,250))
@@ -44,6 +47,7 @@ class ProfileActivity:WorkspaceActivity() {
         }
         restoredFields=null
         body.addView(Button(this).apply { text="Сохранить профиль";setOnClickListener {
+            // Проверяем обязательные поля и отправляем только валидный JSON.
             if(name.text.isBlank()||surname.text.isBlank()||(license.text.isNotBlank()&&license.text.length!=10)) message("Заполните имя и фамилию; номер удостоверения — 10 символов.")
             else work.run("saveProfile",JSONObject().put("name",name.text.toString()).put("surname",surname.text.toString()).put("license",license.text.toString()).put("avatar",chosen))
         } })
@@ -51,6 +55,7 @@ class ProfileActivity:WorkspaceActivity() {
         if(operation=="saveProfile") { chosen="";message("Профиль сохранён на сервере.") }
     }
     override fun onSaveInstanceState(out:Bundle) {
+        // Сохраняем ещё не отправленный ввод при повороте экрана.
         out.putString("avatar",chosen)
         if(::name.isInitialized) { out.putString("name",name.text.toString());out.putString("surname",surname.text.toString());out.putString("license",license.text.toString()) }
         super.onSaveInstanceState(out)

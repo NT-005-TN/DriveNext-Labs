@@ -15,9 +15,11 @@ class RegisterStep1Activity : AuthActivity() {
         binding.passwordInput.setText(Draft.password)
         binding.repeatPasswordInput.setText(Draft.repeatPassword)
         binding.termsCheckbox.isChecked = Draft.terms
+        // Убираем старую ошибку, как только пользователь исправляет email.
         binding.emailInput.afterTextChanged { binding.emailLayout.error = null }
         binding.backButton.setOnClickListener { finish() }
         binding.nextButton.setOnClickListener {
+            // Валидируем шаг, сохраняем черновик и открываем персональные данные.
             val error = authModel.step1(binding.emailInput.text.toString(), binding.passwordInput.text.toString(),
                 binding.repeatPasswordInput.text.toString(), binding.termsCheckbox.isChecked)
             if (error != null) message(error) else navigate(RegisterStep2Activity::class.java)

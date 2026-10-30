@@ -5,8 +5,10 @@ import org.json.JSONObject
 import java.time.LocalDate
 import ru.mtuci.drivenext.presentation.common.*
 class BookingDetailsActivity:WorkspaceActivity() {
+    // UUID бронирования приходит через Intent из списка.
     override fun onStart() { super.onStart();screen("Бронирование");work.run("booking",JSONObject().put("id",intent.getStringExtra("id"))) }
     override fun render(operation:String,value:JSONObject) {
+        // После отмены закрываем экран, иначе показываем актуальные детали.
         if(operation=="cancel") { finish();return }
         val body=screen("Бронирование")
         val active=value.getString("status")=="approved" && !LocalDate.parse(value.getString("end_date")).isBefore(LocalDate.now())
@@ -16,6 +18,7 @@ class BookingDetailsActivity:WorkspaceActivity() {
             "\nАренда: "+value.getLong("rental_total")+" ₽\nСтраховка: "+value.getLong("insurance_total")+
             " ₽\nИтого: "+value.getLong("total")+" ₽\nДепозит: "+value.getInt("deposit")+" ₽"+
             "\nСтатус: "+if(active) "Одобрено" else if(value.getString("status")=="cancelled") "Отменено" else "Завершено")
+        // Отмену активной брони подтверждаем отдельным диалогом.
         if(active) body.addView(Button(this).apply { text="Отменить бронирование";setOnClickListener {
             MaterialAlertDialogBuilder(this@BookingDetailsActivity).setMessage("Отменить это бронирование?")
                 .setPositiveButton("Да") { _,_->work.run("cancel",JSONObject().put("id",value.getString("id"))) }.setNegativeButton("Нет",null).show()

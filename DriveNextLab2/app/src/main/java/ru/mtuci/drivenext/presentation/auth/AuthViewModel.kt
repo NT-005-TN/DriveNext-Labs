@@ -14,6 +14,7 @@ import ru.mtuci.drivenext.domain.*
 data class AuthUiState(val busy: Boolean = false, val event: String? = null, val message: String = "")
 
 class AuthViewModel(application: Application) : AndroidViewModel(application) {
+    // Получаем общую бизнес-логику авторизации из Application.
     private val app = application as DriveNextApplication
     private val auth = app.auth
     private val mutable = MutableStateFlow(AuthUiState())
@@ -21,10 +22,13 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     private var restored = false
     private var pendingCallback: String? = null
     private var handledCallback: String? = null
+    // Очищаем одноразовое событие после обработки экраном.
     fun consume() { mutable.value = AuthUiState() }
+    // Сообщаем экрану об отсутствии подтверждённого интернета.
     fun checkNetwork() {
         if (!mutable.value.busy && !auth.hasNetwork()) mutable.value = AuthUiState(event = "offline")
     }
+    // Не допускаем повторный запрос и переводим исключения в состояние UI.
     private fun request(block: suspend () -> AuthUiState) {
         if (mutable.value.busy) return
         mutable.value = AuthUiState(busy = true)
@@ -40,6 +44,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
     }
+    // Выполняем обычный вход и выбираем следующий экран.
     fun login(email: String, password: String) = request {
         auth.login(email, password)
         if (app.secureStore.get("pending_registration") == email.trim()) {
@@ -47,6 +52,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
             AuthUiState(event = "continue_registration")
         } else AuthUiState(event = "main")
     }
+    // Восстанавливаем сохранённую сессию для открытого или защищённого экрана.
     fun restore(force: Boolean = false, protectedScreen: Boolean = false) {
         if (force) restored = false
         if (restored) return
@@ -62,7 +68,9 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
             })
         }
     }
+    // Получаем ссылку Supabase OAuth, которую Activity откроет в браузере.
     fun google() = request { AuthUiState(event = "browser", message = auth.googleUrl()) }
+    // Обрабатываем Deep Link один раз, откладывая его при другом активном запросе.
     fun callback(uri: String) {
         if (handledCallback == uri) return
         if (mutable.value.busy) { pendingCallback = uri; return }
@@ -77,9 +85,11 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
             })
         }
     }
+    // Отправляем на почту ссылку восстановления и сохраняем новый пароль.
     fun recover(email: String) = request { auth.recover(email); AuthUiState(event = "info", message = "Если аккаунт существует, на почту отправлена ссылка. Откройте её на этом устройстве.") }
     fun newPassword(password: String) = request { auth.updatePassword(password); AuthUiState(event = "main") }
     fun logout() = request { auth.signOut(); AuthUiState(event = "choice") }
+    // Собираем черновик в Registration и запускаем регистрацию на сервере.
     fun submit() = request {
         auth.register(Registration(Draft.email, Draft.password, Draft.surname, Draft.name, Draft.patronymic,
             Draft.birthDate, Draft.gender, Draft.license, Draft.issueDate, Draft.profilePhoto,
@@ -87,11 +97,13 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
         Draft.clear()
         AuthUiState(event = "success")
     }
+    // Валидируем и сохраняем первый шаг регистрации.
     fun step1(email: String, password: String, repeat: String, terms: Boolean): String? {
         auth.validateStep1(email, password, repeat, terms)?.let { return it }
         Draft.email = email.trim(); Draft.password = password; Draft.repeatPassword = repeat; Draft.terms = terms; Draft.save()
         return null
     }
+    // Сохраняем персональные данные между экранами регистрации.
     fun savePersonal(surname: String, name: String, patronymic: String, birth: String, gender: String) {
         Draft.surname = surname.trim(); Draft.name = name.trim(); Draft.patronymic = patronymic.trim()
         Draft.birthDate = birth; Draft.gender = gender; Draft.save()

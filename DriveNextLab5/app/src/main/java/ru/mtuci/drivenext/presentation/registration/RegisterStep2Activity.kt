@@ -20,6 +20,7 @@ class RegisterStep2Activity : AuthActivity() {
         binding.patronymicInput.setText(Draft.patronymic); binding.birthDateInput.setText(Draft.birthDate)
         if (Draft.gender == "male") binding.maleRadio.isChecked = true
         if (Draft.gender == "female") binding.femaleRadio.isChecked = true
+        // Состояние кнопки зависит от всех обязательных полей шага.
         fun updateState() {
             binding.nextButton.isEnabled = authModel.personalFilled(binding.surnameInput.text.toString(),
                 binding.nameInput.text.toString(), binding.birthDateInput.text.toString(), gender())
@@ -29,6 +30,7 @@ class RegisterStep2Activity : AuthActivity() {
         binding.genderGroup.setOnCheckedChangeListener { _, _ -> updateState() }
         updateState()
         binding.backButton.setOnClickListener { finish() }
+        // MaterialDatePicker возвращает дату в согласованном формате.
         binding.birthDateInput.setOnClickListener { showDatePicker(getString(R.string.birth_date), "MM/dd/yyyy") { binding.birthDateInput.setText(it) } }
         restoreDatePicker(getString(R.string.birth_date), "MM/dd/yyyy") { binding.birthDateInput.setText(it) }
         binding.nextButton.setOnClickListener {
@@ -36,7 +38,9 @@ class RegisterStep2Activity : AuthActivity() {
             if (error != null) message(error) else { save(); navigate(RegisterStep3Activity::class.java) }
         }
     }
+    // Переносим значения формы в общий черновик регистрации.
     private fun save() = authModel.savePersonal(binding.surnameInput.text.toString(), binding.nameInput.text.toString(),
         binding.patronymicInput.text.toString(), binding.birthDateInput.text.toString(), gender())
+    // Сохраняем ввод при переходе, повороте или сворачивании экрана.
     override fun onStop() { save(); super.onStop() }
 }

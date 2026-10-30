@@ -4,5 +4,6 @@ import androidx.lifecycle.ViewModel
 import ru.mtuci.drivenext.data.connectivity.NetworkMonitor
 
 class NoConnectionViewModel(private val networkMonitor: NetworkMonitor) : ViewModel() {
+    // Повторно спрашиваем системный NetworkMonitor о доступности интернета.
     fun hasInternetConnection(): Boolean = networkMonitor.hasInternetConnection()
 }

@@ -1,9 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="purple_primary">#2B124C</color>
-    <color name="purple_light">#694F8E</color>
-    <color name="text_primary">#17131C</color>
-    <color name="text_secondary">#766F7E</color>
+    <color name="purple_primary">#5B3A8E</color>
+    <color name="purple_dark">#33204F</color>
+    <color name="purple_light">#8B6CB7</color>
+    <color name="accent">#F47C62</color>
+    <color name="text_primary">#211B28</color>
+    <color name="text_secondary">#746A7D</color>
     <color name="surface">#FFFFFF</color>
-    <color name="indicator_inactive">#E5E2E8</color>
+    <color name="background">#F7F4FA</color>
+    <color name="surface_variant">#F0EAF6</color>
+    <color name="border">#E1D8E9</color>
+    <color name="indicator_inactive">#D9D0E2</color>
 </resources>

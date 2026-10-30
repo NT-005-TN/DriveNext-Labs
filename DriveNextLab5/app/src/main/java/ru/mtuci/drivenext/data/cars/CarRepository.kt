@@ -12,27 +12,39 @@ import java.time.LocalDate
 
 // Все операции каталога, профиля и аренды используют настоящую серверную сессию.
 class CarRepository(private val context: Context, private val api: SupabaseAuthRepository) {
+    // Приводим серверный массив к единому формату результата ViewModel.
     private fun items(raw: String) = JSONObject().put("items", JSONArray(raw))
+    // Получаем первую строку или выдаём понятную ошибку доступа.
     private fun first(raw: String): JSONObject = JSONArray(raw).optJSONObject(0)
         ?: throw AuthException("Запись не найдена или недоступна.")
     private suspend fun profile(): JSONObject {
+        // Сначала определяем UUID текущего пользователя, затем читаем profiles.
         val user = JSONObject(api.call("/auth/v1/user"))
         val rows = JSONArray(api.call("/rest/v1/profiles?id=eq." + user.getString("id")))
         return (rows.optJSONObject(0) ?: JSONObject().put("id", user.getString("id"))
             .put("name", user.optJSONObject("user_metadata")?.optString("full_name").orEmpty()))
             .put("email", user.optString("email"))
     }
+    // Выбираем серверную или локальную операцию по её строковому имени.
     suspend fun execute(operation: String, p: JSONObject): JSONObject = when (operation) {
         "cars" -> {
+            // Готовим безопасный фильтр, offset и limit для каталога.
             val query = p.optString("query").trim()
+            val page = p.optInt("page", 0).coerceAtLeast(0)
+            val pageSize = p.optInt("page_size", 10).coerceIn(1, 50)
+            val offset = page * pageSize
             // Спецсимволы PostgREST не попадают в выражение фильтра.
             val words = query.split(Regex("[^\\p{L}\\p{N}]+")).filter { it.isNotBlank() }
             val filters = words.joinToString("") { "&or=" + Uri.encode("(brand.ilike.*" + it + "*,model.ilike.*" + it + "*)") }
-            items(api.call("/rest/v1/cars?active=eq.true&order=id.desc" + filters))
+            // Берём на одну запись больше, чтобы точно понять, есть ли следующая страница.
+            val raw = JSONArray(api.call("/rest/v1/cars?active=eq.true&order=id.desc" + filters +
+                "&offset=" + offset + "&limit=" + (pageSize + 1)))
+            catalogPage(raw, page, pageSize)
         }
         "car" -> first(api.call("/rest/v1/cars?id=eq." + p.getLong("id")))
         "profile" -> profile()
         "saveProfile" -> {
+            // Загружаем новый аватар и обновляем профиль через upsert.
             val id = api.ownerId()
             val payload = JSONObject().put("id", id).put("name", p.optString("name").trim())
                 .put("surname", p.optString("surname").trim()).put("license_number", p.optString("license").trim().ifBlank { null } ?: JSONObject.NULL)
@@ -50,6 +62,7 @@ class CarRepository(private val context: Context, private val api: SupabaseAuthR
             execute("booking", p)
         }
         "favorites" -> {
+            // Локальные ID из Room превращаем в серверный запрос автомобилей.
             val dao = DriveNextDatabase.get(context, api.ownerId()).favorites()
             val ids = dao.all().map { it.id }
             if (ids.isEmpty()) JSONObject().put("items", JSONArray())
@@ -57,12 +70,14 @@ class CarRepository(private val context: Context, private val api: SupabaseAuthR
         }
         "favoriteState" -> JSONObject().put("favorite", DriveNextDatabase.get(context, api.ownerId()).favorites().contains(p.getLong("id")))
         "toggleFavorite" -> {
+            // Добавляем или удаляем одну машину из пользовательской базы Room.
             val c = Car.fromJson(p)
             val dao = DriveNextDatabase.get(context, api.ownerId()).favorites()
             if (dao.contains(c.id)) dao.delete(c.id) else dao.insert(FavoriteCarEntity(c.id,c.brand,c.model,c.pricePerDay,c.specs))
             JSONObject().put("favorite", dao.contains(c.id))
         }
         "saveCar" -> {
+            // Проверяем черновик и создаём неактивную серверную запись.
             val year = p.optString("year").toIntOrNull() ?: 0
             val mileage = p.optString("mileage").toIntOrNull() ?: -1
             if (year !in 1900..LocalDate.now().year || mileage < 0) throw AuthException("Проверьте год выпуска и пробег.")
@@ -75,6 +90,7 @@ class CarRepository(private val context: Context, private val api: SupabaseAuthR
             first(api.call("/rest/v1/cars?client_id=eq." + Uri.encode(p.getString("client_id"))))
         }
         "publishCar" -> {
+            // После загрузки 1–5 фото делаем автомобиль видимым в каталоге.
             val uris = p.getJSONArray("photos")
             if (uris.length() !in 1..5) throw AuthException("Выберите от 1 до 5 фотографий.")
             val paths = JSONArray()

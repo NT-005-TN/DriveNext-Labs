@@ -14,6 +14,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.DriveNext">
 
+        <activity android:name=".presentation.common.FeatureStubActivity" />
         <activity android:name=".presentation.settings.ProfileActivity" />
         <activity android:name=".presentation.landlord.CarAddedActivity" />
         <activity android:name=".presentation.landlord.CarPhotosActivity" />

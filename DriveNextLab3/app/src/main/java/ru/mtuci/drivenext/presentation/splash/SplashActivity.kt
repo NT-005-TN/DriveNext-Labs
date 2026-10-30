@@ -21,6 +21,7 @@ import ru.mtuci.drivenext.presentation.onboarding.OnboardingActivity
 
 class SplashActivity : AppCompatActivity() {
     private lateinit var binding: ActivitySplashBinding
+    // Фабрика передаёт ViewModel две зависимости стартового сценария.
     private val viewModel: SplashViewModel by viewModels {
         val useCase = ResolveStartDestinationUseCase(
             NetworkMonitor(applicationContext),
@@ -33,11 +34,13 @@ class SplashActivity : AppCompatActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Подключаем системную заставку до стандартного создания Activity.
         installSplashScreen()
         super.onCreate(savedInstanceState)
         binding = ActivitySplashBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        // Корутина ждёт без блокировки UI и открывает вычисленный маршрут.
         lifecycleScope.launch {
             delay(SPLASH_DURATION_MS)
             val target = when (viewModel.destination()) {

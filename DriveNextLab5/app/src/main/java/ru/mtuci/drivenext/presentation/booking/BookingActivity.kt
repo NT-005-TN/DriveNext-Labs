@@ -20,6 +20,7 @@ class BookingActivity:WorkspaceActivity() {
     private var startTime:String=""
     private var requestId=UUID.randomUUID().toString()
     override fun onCreate(savedInstanceState:Bundle?) {
+        // Восстанавливаем даты, время и идемпотентный requestId после поворота.
         super.onCreate(savedInstanceState);b=ActivityBookingBinding.inflate(layoutInflater);setContentView(b.root)
         start=savedInstanceState?.getString("start").orEmpty(); end=savedInstanceState?.getString("end").orEmpty()
         startTime=savedInstanceState?.getString("start_time").orEmpty()
@@ -29,6 +30,7 @@ class BookingActivity:WorkspaceActivity() {
         restoreDatePicker("Дата окончания","yyyy-MM-dd") { end=it;requestId=UUID.randomUUID().toString();calculate() }
         b.endDate.setOnClickListener { showDatePicker("Дата окончания","yyyy-MM-dd") { end=it;requestId=UUID.randomUUID().toString();calculate() } }
         b.startTime.setOnClickListener {
+            // MaterialTimePicker возвращает локальное время получения машины.
             val selected=runCatching { java.time.LocalTime.parse(startTime) }.getOrDefault(java.time.LocalTime.NOON)
             val picker=MaterialTimePicker.Builder().setTitleText("Время получения автомобиля")
                 .setTimeFormat(TimeFormat.CLOCK_24H).setHour(selected.hour).setMinute(selected.minute).build()
@@ -37,9 +39,11 @@ class BookingActivity:WorkspaceActivity() {
         (supportFragmentManager.findFragmentByTag("rental_start_time") as? MaterialTimePicker)?.let(::bindTimePicker)
         b.continueButton.isEnabled=false
         b.continueButton.setOnClickListener {
+            // Отправляем серверу машину, даты, время и уникальный id запроса.
             car?.let { work.run("book",JSONObject().put("request",requestId).put("id",it.getLong("id")).put("start",start).put("end",end).put("start_time",startTime)) }
         }
     }
+    // Перепривязываем callback к восстановленному TimePicker.
     private fun bindTimePicker(picker:MaterialTimePicker) {
         picker.clearOnPositiveButtonClickListeners()
         picker.addOnPositiveButtonClickListener {
@@ -47,7 +51,9 @@ class BookingActivity:WorkspaceActivity() {
             requestId=UUID.randomUUID().toString();calculate()
         }
     }
+    // Загружаем тарифы и адрес выбранной машины.
     override fun onStart() { super.onStart();work.run("car",JSONObject().put("id",intent.getLongExtra("id",-1))) }
+    // Локально рассчитываем предварительную стоимость и валидность формы.
     private fun calculate() {
         b.startDate.text=start.ifBlank { "Дата начала" };b.endDate.text=end.ifBlank { "Дата окончания" }
         b.startTime.text=if(startTime.isBlank()) "Время начала" else "Время начала: "+startTime
@@ -58,6 +64,7 @@ class BookingActivity:WorkspaceActivity() {
             { if(start.isBlank()||end.isBlank()) "Выберите даты аренды" else "Проверьте даты: начало не раньше сегодня, окончание не раньше начала, не более 366 дней." })
     }
     override fun render(operation:String,value:JSONObject) {
+        // Машину показываем в форме, успешную бронь переводим на экран результата.
         if(operation=="car") { car=value;b.carName.text=value.getString("brand")+" "+value.getString("model")+"\n"+value.getInt("price_per_day")+" ₽ / день";b.address.text=value.getString("address");calculate() }
         if(operation=="book") startActivity(Intent(this,BookingSuccessActivity::class.java).putExtra("id",value.getString("id")).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
     }

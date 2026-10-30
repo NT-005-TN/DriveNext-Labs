@@ -15,6 +15,7 @@ class CarPhotosActivity:WorkspaceActivity() {
  private lateinit var b:ActivityCarPhotosBinding
  private val app get()=application as DriveNextApplication
  private val photos=mutableListOf<String>()
+ // Получаем до пяти URI и сохраняем постоянный доступ к выбранным файлам.
  private val picker=registerForActivityResult(ActivityResultContracts.OpenMultipleDocuments()){items->
   if(items.isNotEmpty()){
    photos.clear()
@@ -24,6 +25,7 @@ class CarPhotosActivity:WorkspaceActivity() {
   }
  }
  override fun onCreate(savedInstanceState:Bundle?){
+  // Восстанавливаем выбранные фото и назначаем действия кнопок.
   super.onCreate(savedInstanceState);b=ActivityCarPhotosBinding.inflate(layoutInflater);setContentView(b.root)
   val saved=CarDraft.read(app).optJSONArray("photos")?:JSONArray()
   for(i in 0 until saved.length()) photos.add(saved.getString(i))
@@ -31,12 +33,14 @@ class CarPhotosActivity:WorkspaceActivity() {
   b.nextButton.setOnClickListener{work.run("publishCar",CarDraft.read(app))}
   renderPhotos()
  }
+ // Перерисовываем миниатюры, счётчик и доступность публикации.
  private fun renderPhotos(){
   b.photoStrip.removeAllViews()
   photos.forEach{uri->b.photoStrip.addView(ImageView(this).apply{runCatching{setImageURI(Uri.parse(uri))};scaleType=ImageView.ScaleType.CENTER_CROP},LinearLayout.LayoutParams(0,180,1f))}
   b.counter.text=photos.size.toString()+" / 5";b.nextButton.isEnabled=photos.isNotEmpty()
  }
  override fun render(operation:String,value:JSONObject){
+  // Успешная публикация очищает черновик и стек мастера добавления.
   CarDraft.clear(app)
   startActivity(Intent(this,CarAddedActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
  }

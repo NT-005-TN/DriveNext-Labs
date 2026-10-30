@@ -25,21 +25,25 @@ import ru.mtuci.drivenext.presentation.registration.RegisterStep3Activity
 
 // Общая обработка состояния запроса; бизнес-логика находится во ViewModel.
 abstract class AuthActivity : AppCompatActivity() {
+    // Одна ViewModel обслуживает состояние авторизации конкретного экрана.
     protected val authModel: AuthViewModel by viewModels()
     private var overlay: FrameLayout? = null
     private var passwordDialog: androidx.appcompat.app.AlertDialog? = null
     override fun onStart() { super.onStart(); authModel.checkNetwork() }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Запрещаем уход назад, пока серверный запрос ещё выполняется.
         onBackPressedDispatcher.addCallback(this) {
             if (!authModel.state.value.busy) { isEnabled = false; onBackPressedDispatcher.onBackPressed() }
         }
+        // Наблюдаем за StateFlow только в активном состоянии Activity.
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 authModel.state.collect { state ->
                     loading(state.busy)
                     val event = state.event ?: return@collect
                     authModel.consume()
+                    // Преобразуем одноразовое событие ViewModel в действие интерфейса.
                     when (event) {
                         "main" -> { passwordDialog?.dismiss(); navigate(MainActivity::class.java, true) }
                         "choice" -> navigate(AuthChoiceActivity::class.java, true)
@@ -59,8 +63,10 @@ abstract class AuthActivity : AppCompatActivity() {
     protected open fun onAuthenticated() = Unit
     protected fun message(text: String) { MaterialAlertDialogBuilder(this).setTitle("DriveNext").setMessage(text).setPositiveButton("OK", null).show() }
     protected fun navigate(target: Class<*>, clear: Boolean = false) {
+        // При clear удаляем экраны входа и регистрации из стека.
         startActivity(Intent(this, target).apply { if (clear) addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK) })
     }
+    // Показываем отдельную форму ввода нового пароля после recovery-ссылки.
     private fun passwordDialog() {
         if (passwordDialog?.isShowing == true) return
         val input = EditText(this).apply { hint = "Новый пароль (от 6 символов)"; inputType = 129 }
@@ -75,6 +81,7 @@ abstract class AuthActivity : AppCompatActivity() {
                 show()
             }
     }
+    // Полупрозрачный слой блокирует повторные нажатия во время запроса.
     private fun loading(show: Boolean) {
         if (overlay == null || overlay?.parent == null) {
             overlay = FrameLayout(this).apply {

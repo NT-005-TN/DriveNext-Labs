@@ -11,6 +11,7 @@ class LoginActivity : AuthActivity() {
         super.onCreate(savedInstanceState)
         val binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        // Включаем вход только после заполнения обоих полей.
         fun updateState() {
             binding.signInButton.isEnabled = !binding.emailInput.text.isNullOrBlank() && !binding.passwordInput.text.isNullOrBlank()
             binding.emailLayout.error = null
@@ -18,15 +19,17 @@ class LoginActivity : AuthActivity() {
         binding.emailInput.afterTextChanged(::updateState)
         binding.passwordInput.afterTextChanged(::updateState)
         updateState()
+        // Передаём значения формы во ViewModel, не выполняя сеть из Activity.
         binding.signInButton.setOnClickListener { authModel.login(binding.emailInput.text.toString(), binding.passwordInput.text.toString()) }
         binding.googleButton.setOnClickListener { authModel.google() }
         binding.registerLink.setOnClickListener { navigate(RegisterStep1Activity::class.java) }
         binding.forgotPassword.setOnClickListener { authModel.recover(binding.emailInput.text.toString()) }
-        // ViewModel исключает повтор, но после гибели процесса Intent нужен снова.
+        // Обрабатываем OAuth Deep Link при создании новой Activity.
         intent.data?.toString()?.let(authModel::callback)
     }
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
+        // Получаем callback, если singleTask Activity уже была открыта.
         setIntent(intent)
         intent.data?.toString()?.let(authModel::callback)
     }

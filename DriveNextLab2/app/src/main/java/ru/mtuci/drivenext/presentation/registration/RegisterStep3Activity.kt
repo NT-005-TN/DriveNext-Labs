@@ -16,6 +16,7 @@ import ru.mtuci.drivenext.presentation.common.restoreDatePicker
 class RegisterStep3Activity : AuthActivity() {
     private lateinit var binding: ActivityRegisterStep3Binding
     private var target = "PROFILE"
+    // Получаем URI выбранного изображения через Activity Result API.
     private val picker = registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
         if (uri != null) {
             try { contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION) }
@@ -40,21 +41,25 @@ class RegisterStep3Activity : AuthActivity() {
         binding.licensePhotoButton.setOnClickListener { pick("LICENSE") }
         binding.passportPhotoButton.setOnClickListener { pick("PASSPORT") }
         binding.nextButton.setOnClickListener {
+            // Пароль не пишется на диск, поэтому после гибели процесса вводится снова.
             if (Draft.password.isBlank()) {
                 message("После перезапуска введите пароль на первом шаге. Остальные данные сохранены.")
                 navigate(RegisterStep1Activity::class.java)
             } else authModel.submit()
         }
     }
+    // Восстанавливаем превью и подписи выбранных файлов.
     private fun renderPhotos() {
         Draft.profilePhoto?.let { runCatching { binding.profilePhotoButton.setImageURI(Uri.parse(it)) } }
         binding.licensePhotoButton.setText(if (Draft.licensePhoto == null) R.string.upload_photo else R.string.photo_selected)
         binding.passportPhotoButton.setText(if (Draft.passportPhoto == null) R.string.upload_photo else R.string.photo_selected)
     }
+    // Сохраняем реквизиты и разрешаем отправку после выбора обязательных фото.
     private fun updateState() {
         authModel.saveDocuments(binding.licenseInput.text.toString(), binding.issueDateInput.text.toString())
         binding.nextButton.isEnabled = authModel.documentsFilled()
     }
+    // Запоминаем, для какого документа открывается системный выбор изображения.
     private fun pick(value: String) { target = value; picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) }
     override fun onSaveInstanceState(outState: Bundle) { outState.putString("photo_target", target); super.onSaveInstanceState(outState) }
 }

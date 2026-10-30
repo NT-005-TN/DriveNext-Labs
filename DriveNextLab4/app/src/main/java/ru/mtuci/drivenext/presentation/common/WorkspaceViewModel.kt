@@ -12,11 +12,14 @@ import ru.mtuci.drivenext.domain.NoInternetException
 
 data class WorkState(val busy: Boolean = false, val operation: String = "", val value: JSONObject? = null, val error: String? = null, val offline: Boolean = false)
 class WorkspaceViewModel(app: Application) : AndroidViewModel(app) {
+    // Репозиторий обслуживает каталог, профиль и рабочие сценарии.
     private val repository = CarRepository(app, (app as DriveNextApplication).backend)
     private val mutable = MutableStateFlow(WorkState())
     val state = mutable.asStateFlow()
     private var job: Job? = null
     private var last: Pair<String,JSONObject>? = null
+    fun isBusy(): Boolean = mutable.value.busy
+    // Запускаем операцию в IO; новый поиск отменяет устаревший запрос каталога.
     fun run(operation: String, parameters: JSONObject = JSONObject()) {
         if (mutable.value.busy) { if (operation == "cars") job?.cancel() else return }
         last = operation to JSONObject(parameters.toString())
@@ -30,6 +33,8 @@ class WorkspaceViewModel(app: Application) : AndroidViewModel(app) {
             catch (e: Exception) { mutable.value = WorkState(error = e.message ?: "Не удалось загрузить данные. Попробуйте снова.") }
         }
     }
+    // Повторяем последнюю операцию после ошибки сети.
     fun retry() { last?.let { run(it.first,it.second) } }
+    // Очищаем одноразовый результат после отрисовки.
     fun consume() { mutable.value = WorkState() }
 }

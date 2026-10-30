@@ -11,12 +11,13 @@ class AuthChoiceActivity : AuthActivity() {
         super.onCreate(savedInstanceState)
         val binding = ActivityAuthChoiceBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        // Пользователь выбирает вход или создание нового аккаунта.
+        // Открываем независимый сценарий входа или регистрации.
         binding.signInButton.setOnClickListener { startActivity(Intent(this, LoginActivity::class.java)) }
         binding.registerButton.setOnClickListener { startActivity(Intent(this, RegisterStep1Activity::class.java)) }
     }
     override fun onStart() {
         super.onStart()
+        // Действующая сохранённая сессия сразу переводит на главный экран.
         authModel.restore()
     }
 }

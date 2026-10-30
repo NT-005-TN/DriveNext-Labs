@@ -28,6 +28,7 @@ class OnboardingActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Связываем ViewPager2 с адаптером трёх страниц.
         binding = ActivityOnboardingBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
@@ -35,6 +36,7 @@ class OnboardingActivity : AppCompatActivity() {
         createIndicators()
         updateControls(0)
 
+        // При свайпе обновляем кнопку и визуальные индикаторы.
         binding.viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) = updateControls(position)
         })
@@ -45,12 +47,14 @@ class OnboardingActivity : AppCompatActivity() {
         }
     }
 
+    // Создаём по одной точке на каждую страницу.
     private fun createIndicators() {
         repeat(viewModel.pages.size) {
             binding.indicators.addView(View(this), LinearLayout.LayoutParams(dp(9), dp(9)).apply { setMargins(dp(4)) })
         }
     }
 
+    // Последняя страница меняет «Далее» на «Поехали».
     private fun updateControls(position: Int) {
         val lastPage = position == viewModel.pages.lastIndex
         binding.nextButton.setText(if (lastPage) R.string.start else R.string.next)
@@ -66,6 +70,7 @@ class OnboardingActivity : AppCompatActivity() {
         }
     }
 
+    // Сохраняем флаг и очищаем онбординг из истории переходов.
     private fun finishOnboarding() {
         viewModel.complete()
         startActivity(Intent(this, AuthChoiceActivity::class.java))

@@ -13,8 +13,10 @@ class DriveNextApplication : Application() {
         private set
     override fun onCreate() {
         super.onCreate()
+        // Создаём общие зависимости один раз на весь процесс приложения.
         secureStore = SecureStore(this)
         auth = AuthUseCase(SupabaseAuthRepository(this, secureStore))
+        // Восстанавливаем незавершённый черновик регистрации.
         RegistrationDraft.initialize(secureStore)
         // Удаляем только старую демонстрационную сессию, не пользовательские настройки.
         getSharedPreferences("session", MODE_PRIVATE).edit().remove("access_token").apply()

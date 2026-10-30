@@ -12,10 +12,12 @@ import ru.mtuci.drivenext.presentation.auth.AuthActivity
 import ru.mtuci.drivenext.presentation.connection.NoConnectionActivity
 
 abstract class WorkspaceActivity : AuthActivity() {
+    // Общая ViewModel убирает повтор обработки загрузки и ошибок с экранов.
     protected val work: WorkspaceViewModel by viewModels()
     private var retryAfterNetwork = false
     override fun onResume() {
         super.onResume()
+        // После возврата с экрана сети автоматически повторяем запрос.
         if (retryAfterNetwork && (application as ru.mtuci.drivenext.DriveNextApplication).auth.hasNetwork()) {
             retryAfterNetwork = false
             work.retry()
@@ -23,6 +25,7 @@ abstract class WorkspaceActivity : AuthActivity() {
     }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Преобразуем WorkState в загрузку, результат, offline или диалог ошибки.
         lifecycleScope.launch { repeatOnLifecycle(Lifecycle.State.STARTED) {
             work.state.collect { state ->
                 loading(state.busy)
